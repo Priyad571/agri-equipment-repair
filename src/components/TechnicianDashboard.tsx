@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Technician, Status, Review } from '@/types';
+import SpareParts from './SpareParts';
 import {
   Loader2, ArrowLeft, Wrench, Star, CheckCircle2, User, Clock,
-  ChevronRight, X, Lightbulb, Activity, MessageSquare,
+  ChevronRight, X, Lightbulb, Activity, MessageSquare, Package,
 } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -56,6 +57,8 @@ export default function TechnicianDashboard({ onBack }: Props) {
   const [activeTechId, setActiveTechId] = useState<string | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<RepairRequestWithTech | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [showParts, setShowParts] = useState(false);
+  const [partsEquipmentFilter, setPartsEquipmentFilter] = useState<string | undefined>(undefined);
 
   const loadRequests = useCallback(async () => {
     const { data, error } = await supabase
@@ -206,16 +209,25 @@ export default function TechnicianDashboard({ onBack }: Props) {
           </div>
 
           {/* Tech identity selector */}
-          <select
-            value={activeTechId || ''}
-            onChange={(e) => setActiveTechId(e.target.value || null)}
-            className="rounded-lg border border-stone-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
-          >
-            <option value="">Working as…</option>
-            {technicians.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setPartsEquipmentFilter(undefined); setShowParts(true); }}
+              className="flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
+            >
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">Spare Parts</span>
+            </button>
+            <select
+              value={activeTechId || ''}
+              onChange={(e) => setActiveTechId(e.target.value || null)}
+              className="rounded-lg border border-stone-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
+            >
+              <option value="">Working as…</option>
+              {technicians.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </header>
 
@@ -442,9 +454,16 @@ export default function TechnicianDashboard({ onBack }: Props) {
                 <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
                   <div className="flex items-start gap-2.5">
                     <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Likely Issue</p>
                       <p className="text-sm text-blue-900 leading-relaxed">{selectedRequest.likely_issue}</p>
+                      <button
+                        onClick={() => { setPartsEquipmentFilter(selectedRequest.equipment_type); setShowParts(true); }}
+                        className="mt-2 flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <Package className="w-3.5 h-3.5" />
+                        Check spare parts availability for {selectedRequest.equipment_type}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -604,6 +623,13 @@ export default function TechnicianDashboard({ onBack }: Props) {
             </div>
           </div>
         </div>
+      )}
+
+      {showParts && (
+        <SpareParts
+          onClose={() => setShowParts(false)}
+          initialEquipmentFilter={partsEquipmentFilter}
+        />
       )}
     </div>
   );

@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Urgency } from '@/types';
-import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2 } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package } from 'lucide-react';
 import NewRequestForm from './NewRequestForm';
 import RatingPopup from './RatingPopup';
+import SpareParts from './SpareParts';
 
 const URGENCY_STYLES: Record<Urgency, string> = {
   normal: 'bg-gray-100 text-gray-700',
@@ -46,6 +47,7 @@ export default function FarmerDashboard({ onBack }: Props) {
   const [nameInput, setNameInput] = useState('');
   const [ratingRequest, setRatingRequest] = useState<RepairRequestWithTech | null>(null);
   const [autoPrompted, setAutoPrompted] = useState(false);
+  const [showParts, setShowParts] = useState(false);
 
   const loadRequests = useCallback(async () => {
     if (!farmerName) return;
@@ -171,14 +173,23 @@ export default function FarmerDashboard({ onBack }: Props) {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">New Request</span>
-            <span className="sm:hidden">New</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowParts(true)}
+              className="flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
+            >
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">Spare Parts</span>
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">New Request</span>
+              <span className="sm:hidden">New</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -335,6 +346,10 @@ export default function FarmerDashboard({ onBack }: Props) {
             loadRequests();
           }}
         />
+      )}
+
+      {showParts && (
+        <SpareParts onClose={() => setShowParts(false)} />
       )}
     </div>
   );

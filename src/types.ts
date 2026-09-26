@@ -42,3 +42,15 @@ export interface RepairRequestWithTech extends RepairRequest {
 export interface TechnicianWithReviews extends Technician {
   reviews: Review[];
 }
+
+export type Availability = 'In Stock' | 'Low Stock' | 'Out of Stock';
+
+export interface SparePart {
+  id: string;
+  part_name: string;
+  compatible_equipment: string;
+  price: number;
+  availability: Availability;
+  supplier_name: string;
+  created_at: string;
+}
