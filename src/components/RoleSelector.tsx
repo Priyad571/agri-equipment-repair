@@ -1,4 +1,4 @@
-import { Tractor, Wrench } from 'lucide-react';
+import { Tractor, Wrench, ClipboardList, Handshake, Star } from 'lucide-react';
 
 type Role = 'farmer' | 'technician';
 
@@ -62,6 +62,53 @@ export default function RoleSelector({ onSelect }: Props) {
       >
         Just exploring? Start as a Farmer
       </button>
+
+      {/* How it works */}
+      <div className="mt-16 w-full max-w-3xl animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        <h2 className="text-center text-sm font-semibold text-stone-500 uppercase tracking-wide mb-6">
+          How it works
+        </h2>
+        <div className="grid sm:grid-cols-3 gap-6">
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-green-100 text-green-700 mb-3">
+              <ClipboardList className="w-6 h-6" />
+            </div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="w-5 h-5 rounded-full bg-stone-900 text-white text-xs font-semibold flex items-center justify-center">1</span>
+              <h3 className="font-semibold text-stone-900 text-sm">Post your issue</h3>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Describe the problem and select the symptoms you're seeing.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-100 text-amber-700 mb-3">
+              <Handshake className="w-6 h-6" />
+            </div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="w-5 h-5 rounded-full bg-stone-900 text-white text-xs font-semibold flex items-center justify-center">2</span>
+              <h3 className="font-semibold text-stone-900 text-sm">Get matched</h3>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              A nearby technician accepts your request and gets to work.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-stone-100 text-stone-700 mb-3">
+              <Star className="w-6 h-6" />
+            </div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="w-5 h-5 rounded-full bg-stone-900 text-white text-xs font-semibold flex items-center justify-center">3</span>
+              <h3 className="font-semibold text-stone-900 text-sm">Track &amp; rate</h3>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Follow progress and rate the service when the repair is done.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
