@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Technician, Status } from '@/types';
 import {
   Loader2, ArrowLeft, Wrench, Star, CheckCircle2, User, Clock,
-  ChevronRight, X,
+  ChevronRight, X, Lightbulb, Activity,
 } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -286,6 +286,14 @@ export default function TechnicianDashboard({ onBack }: Props) {
                     </div>
                     <h3 className="font-semibold text-stone-900 text-base">{req.equipment_type}</h3>
                     <p className="mt-1 text-sm text-stone-600 line-clamp-2">{req.problem_description}</p>
+                    {req.symptoms && req.symptoms.length > 0 && (
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <Activity className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                        {req.symptoms.map((s) => (
+                          <span key={s} className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">{s}</span>
+                        ))}
+                      </div>
+                    )}
                     <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-stone-500">
                       <span className="flex items-center gap-1">
                         <User className="w-3.5 h-3.5 text-stone-400" />
@@ -385,6 +393,29 @@ export default function TechnicianDashboard({ onBack }: Props) {
                 <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">Problem</p>
                 <p className="text-sm text-stone-700 leading-relaxed">{selectedRequest.problem_description}</p>
               </div>
+
+              {selectedRequest.symptoms && selectedRequest.symptoms.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">Symptoms Reported</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedRequest.symptoms.map((s) => (
+                      <span key={s} className="text-xs bg-stone-100 text-stone-700 px-2.5 py-1 rounded-full">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedRequest.likely_issue && (
+                <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+                  <div className="flex items-start gap-2.5">
+                    <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Likely Issue</p>
+                      <p className="text-sm text-blue-900 leading-relaxed">{selectedRequest.likely_issue}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

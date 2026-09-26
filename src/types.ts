@@ -18,6 +18,8 @@ export interface RepairRequest {
   status: Status;
   technician_id: string | null;
   created_at: string;
+  symptoms: string[] | null;
+  likely_issue: string | null;
 }
 
 export interface RepairRequestWithTech extends RepairRequest {

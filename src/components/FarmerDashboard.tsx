@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Urgency } from '@/types';
-import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity } from 'lucide-react';
 import NewRequestForm from './NewRequestForm';
 
 const URGENCY_STYLES: Record<Urgency, string> = {
@@ -228,6 +228,22 @@ export default function FarmerDashboard({ onBack }: Props) {
 
                 <h3 className="font-semibold text-stone-900 text-base">{req.equipment_type}</h3>
                 <p className="mt-1.5 text-sm text-stone-600 leading-relaxed">{req.problem_description}</p>
+
+                {req.symptoms && req.symptoms.length > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                    {req.symptoms.map((s) => (
+                      <span key={s} className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">{s}</span>
+                    ))}
+                  </div>
+                )}
+
+                {req.likely_issue && (
+                  <div className="mt-3 flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5">
+                    <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-900 leading-relaxed">{req.likely_issue}</p>
+                  </div>
+                )}
 
                 <div className="mt-4 pt-4 border-t border-stone-50 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
                   <span className="flex items-center gap-1.5 text-stone-500">

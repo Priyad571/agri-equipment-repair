@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Urgency } from '@/types';
-import { Loader2, Send, CheckCircle2, X } from 'lucide-react';
+import { SYMPTOMS_BY_EQUIPMENT, getLikelyIssue } from '@/lib/symptoms';
+import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square } from 'lucide-react';
 
 const EQUIPMENT_TYPES = [
   'Tractor',
@@ -30,9 +31,28 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
   const [equipmentType, setEquipmentType] = useState(EQUIPMENT_TYPES[0]);
   const [problemDescription, setProblemDescription] = useState('');
   const [urgency, setUrgency] = useState<Urgency>('normal');
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const availableSymptoms = SYMPTOMS_BY_EQUIPMENT[equipmentType] || SYMPTOMS_BY_EQUIPMENT['Other'];
+
+  const likelyIssue = useMemo(
+    () => getLikelyIssue(equipmentType, selectedSymptoms),
+    [equipmentType, selectedSymptoms]
+  );
+
+  function handleEquipmentChange(value: string) {
+    setEquipmentType(value);
+    setSelectedSymptoms([]);
+  }
+
+  function toggleSymptom(symptom: string) {
+    setSelectedSymptoms((prev) =>
+      prev.includes(symptom) ? prev.filter((s) => s !== symptom) : [...prev, symptom]
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +65,8 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
       problem_description: problemDescription,
       urgency,
       status: 'requested',
+      symptoms: selectedSymptoms.length > 0 ? selectedSymptoms : null,
+      likely_issue: likelyIssue,
     });
 
     setSubmitting(false);
@@ -81,7 +103,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
       <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-scale-in">
-        <div className="flex items-center justify-between p-6 border-b border-stone-100">
+        <div className="flex items-center justify-between p-6 border-b border-stone-100 sticky top-0 bg-white z-10">
           <div>
             <h3 className="text-lg font-semibold text-stone-900">New Repair Request</h3>
             <p className="text-xs text-stone-500 mt-0.5">Submitting as {farmerName}</p>
@@ -95,11 +117,12 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {/* Equipment Type */}
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1.5">Equipment Type</label>
             <select
               value={equipmentType}
-              onChange={(e) => setEquipmentType(e.target.value)}
+              onChange={(e) => handleEquipmentChange(e.target.value)}
               className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white"
             >
               {EQUIPMENT_TYPES.map((t) => (
@@ -108,6 +131,53 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
             </select>
           </div>
 
+          {/* Common Symptoms */}
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-2">
+              Common Symptoms <span className="text-stone-400 font-normal">(select all that apply)</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {availableSymptoms.map((symptom) => {
+                const checked = selectedSymptoms.includes(symptom);
+                return (
+                  <button
+                    key={symptom}
+                    type="button"
+                    onClick={() => toggleSymptom(symptom)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-sm text-left transition-all ${
+                      checked
+                        ? 'border-green-500 bg-green-50 text-green-800'
+                        : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50'
+                    }`}
+                  >
+                    {checked ? (
+                      <CheckSquare className="w-4 h-4 text-green-600 shrink-0" />
+                    ) : (
+                      <Square className="w-4 h-4 text-stone-300 shrink-0" />
+                    )}
+                    {symptom}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Likely Issue suggestion */}
+          {likelyIssue && (
+            <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 animate-fade-in">
+              <div className="flex items-start gap-2.5">
+                <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
+                    Likely Issue
+                  </p>
+                  <p className="text-sm text-blue-900 leading-relaxed">{likelyIssue}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Problem Description */}
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1.5">Problem Description</label>
             <textarea
@@ -120,6 +190,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
             />
           </div>
 
+          {/* Urgency */}
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1.5">Urgency</label>
             <select
