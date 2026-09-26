@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Urgency } from '@/types';
-import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2 } from 'lucide-react';
 import NewRequestForm from './NewRequestForm';
+import RatingPopup from './RatingPopup';
 
 const URGENCY_STYLES: Record<Urgency, string> = {
   normal: 'bg-gray-100 text-gray-700',
@@ -43,12 +44,14 @@ export default function FarmerDashboard({ onBack }: Props) {
   const [farmerName, setFarmerName] = useState('');
   const [nameEntered, setNameEntered] = useState(false);
   const [nameInput, setNameInput] = useState('');
+  const [ratingRequest, setRatingRequest] = useState<RepairRequestWithTech | null>(null);
+  const [autoPrompted, setAutoPrompted] = useState(false);
 
   const loadRequests = useCallback(async () => {
     if (!farmerName) return;
     const { data, error } = await supabase
       .from('requests')
-      .select('*, technician:technicians(id, name, specialization, rating)')
+      .select('*, technician:technicians(id, name, specialization, rating), review:reviews(id, rating, feedback)')
       .eq('farmer_name', farmerName)
       .order('created_at', { ascending: false });
 
@@ -63,9 +66,23 @@ export default function FarmerDashboard({ onBack }: Props) {
   useEffect(() => {
     if (nameEntered) {
       setLoading(true);
+      setAutoPrompted(false);
       loadRequests();
     }
   }, [nameEntered, loadRequests]);
+
+  // Auto-prompt rating for the most recent completed request that hasn't been reviewed
+  useEffect(() => {
+    if (!loading && !autoPrompted && !ratingRequest) {
+      const unreviewed = requests.find(
+        (r) => r.status === 'completed' && r.technician_id && !r.review
+      );
+      if (unreviewed) {
+        setRatingRequest(unreviewed);
+      }
+      setAutoPrompted(true);
+    }
+  }, [loading, autoPrompted, ratingRequest, requests]);
 
   const requestedCount = requests.filter((r) => r.status === 'requested').length;
   const activeCount = requests.filter((r) =>
@@ -262,6 +279,35 @@ export default function FarmerDashboard({ onBack }: Props) {
                       Unassigned
                     </span>
                   )}
+
+                  {/* Rating area for completed requests */}
+                  {req.status === 'completed' && req.technician_id && (
+                    req.review ? (
+                      <span className="flex items-center gap-1.5 ml-auto">
+                        <span className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              className={`w-3.5 h-3.5 ${
+                                s <= req.review!.rating
+                                  ? 'text-amber-400 fill-amber-400'
+                                  : 'text-stone-200 fill-stone-100'
+                              }`}
+                            />
+                          ))}
+                        </span>
+                        <span className="text-xs text-stone-400">Rated</span>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setRatingRequest(req)}
+                        className="ml-auto flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors"
+                      >
+                        <Star className="w-3.5 h-3.5" />
+                        Rate this repair
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             ))}
@@ -275,6 +321,17 @@ export default function FarmerDashboard({ onBack }: Props) {
           onClose={() => setShowForm(false)}
           onSubmitted={() => {
             setShowForm(false);
+            loadRequests();
+          }}
+        />
+      )}
+
+      {ratingRequest && (
+        <RatingPopup
+          request={ratingRequest}
+          onClose={() => setRatingRequest(null)}
+          onSubmitted={() => {
+            setRatingRequest(null);
             loadRequests();
           }}
         />

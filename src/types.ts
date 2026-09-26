@@ -6,6 +6,18 @@ export interface Technician {
   name: string;
   specialization: string;
   rating: number;
+  rating_count: number;
+  rating_sum: number;
+  created_at: string;
+}
+
+export interface Review {
+  id: string;
+  request_id: string;
+  technician_id: string;
+  farmer_name: string;
+  rating: number;
+  feedback: string | null;
   created_at: string;
 }
 
@@ -23,5 +35,10 @@ export interface RepairRequest {
 }
 
 export interface RepairRequestWithTech extends RepairRequest {
-  technician: Pick<Technician, 'id' | 'name' | 'specialization' | 'rating'> | null;
+  technician: Pick<Technician, 'id' | 'name' | 'specialization' | 'rating' | 'rating_count'> | null;
+  review: Pick<Review, 'id' | 'rating' | 'feedback'> | null;
+}
+
+export interface TechnicianWithReviews extends Technician {
+  reviews: Review[];
 }

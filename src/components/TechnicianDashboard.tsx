@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { RepairRequestWithTech, Technician, Status } from '@/types';
+import type { RepairRequestWithTech, Technician, Status, Review } from '@/types';
 import {
   Loader2, ArrowLeft, Wrench, Star, CheckCircle2, User, Clock,
-  ChevronRight, X, Lightbulb, Activity,
+  ChevronRight, X, Lightbulb, Activity, MessageSquare,
 } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -50,6 +50,7 @@ interface Props {
 export default function TechnicianDashboard({ onBack }: Props) {
   const [requests, setRequests] = useState<RepairRequestWithTech[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [reviewsByTech, setReviewsByTech] = useState<Record<string, Review[]>>({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [activeTechId, setActiveTechId] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
   const loadRequests = useCallback(async () => {
     const { data, error } = await supabase
       .from('requests')
-      .select('*, technician:technicians(id, name, specialization, rating)')
+      .select('*, technician:technicians(id, name, specialization, rating), review:reviews(id, rating, feedback)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -83,10 +84,31 @@ export default function TechnicianDashboard({ onBack }: Props) {
     setTechnicians((data || []) as Technician[]);
   }, []);
 
+  const loadReviews = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error('Error loading reviews:', error);
+      return;
+    }
+
+    const grouped: Record<string, Review[]> = {};
+    (data || []).forEach((r: Review) => {
+      if (!grouped[r.technician_id]) grouped[r.technician_id] = [];
+      grouped[r.technician_id].push(r);
+    });
+    setReviewsByTech(grouped);
+  }, []);
+
   useEffect(() => {
     loadRequests();
     loadTechnicians();
-  }, [loadRequests, loadTechnicians]);
+    loadReviews();
+  }, [loadRequests, loadTechnicians, loadReviews]);
 
   async function advanceStatus(req: RepairRequestWithTech) {
     const next = NEXT_STATUS[req.status];
@@ -201,31 +223,39 @@ export default function TechnicianDashboard({ onBack }: Props) {
         {/* Technician cards */}
         <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-3">Our Team</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-          {technicians.map((t) => (
-            <div
-              key={t.id}
-              className={`bg-white rounded-xl border p-4 transition-all cursor-pointer ${
-                activeTechId === t.id
-                  ? 'border-amber-500 ring-2 ring-amber-500/20'
-                  : 'border-stone-100 hover:border-stone-200'
-              }`}
-              onClick={() => setActiveTechId(activeTechId === t.id ? null : t.id)}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-50 text-amber-700 text-sm font-semibold">
-                  {t.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+          {technicians.map((t) => {
+            const techReviews = reviewsByTech[t.id] || [];
+            return (
+              <div
+                key={t.id}
+                className={`bg-white rounded-xl border p-4 transition-all cursor-pointer ${
+                  activeTechId === t.id
+                    ? 'border-amber-500 ring-2 ring-amber-500/20'
+                    : 'border-stone-100 hover:border-stone-200'
+                }`}
+                onClick={() => setActiveTechId(activeTechId === t.id ? null : t.id)}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-50 text-amber-700 text-sm font-semibold">
+                    {t.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-stone-900 text-sm truncate">{t.name}</p>
+                    <p className="text-xs text-stone-500 truncate">{t.specialization}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-stone-900 text-sm truncate">{t.name}</p>
-                  <p className="text-xs text-stone-500 truncate">{t.specialization}</p>
+                <div className="mt-3 flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-amber-500">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span className="text-sm font-medium">{t.rating.toFixed(1)}</span>
+                  </div>
+                  {t.rating_count > 0 && (
+                    <span className="text-xs text-stone-400">({t.rating_count} review{t.rating_count !== 1 ? 's' : ''})</span>
+                  )}
                 </div>
               </div>
-              <div className="mt-3 flex items-center gap-1 text-amber-500">
-                <Star className="w-4 h-4 fill-current" />
-                <span className="text-sm font-medium">{t.rating.toFixed(1)}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Filter tabs */}
@@ -339,10 +369,13 @@ export default function TechnicianDashboard({ onBack }: Props) {
                       </>
                     )}
                     {req.status === 'completed' && (
-                      <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                      <button
+                        onClick={() => setSelectedRequest(req)}
+                        className="flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
+                      >
                         <CheckCircle2 className="w-4 h-4" />
-                        Completed
-                      </span>
+                        View Details
+                      </button>
                     )}
                     {req.status === 'cancelled' && (
                       <span className="text-sm text-red-500 font-medium">Cancelled</span>
@@ -439,6 +472,71 @@ export default function TechnicianDashboard({ onBack }: Props) {
                   </p>
                 </div>
               </div>
+
+              {/* Farmer's rating & feedback for this request */}
+              {selectedRequest.review && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Farmer's Rating</p>
+                  <div className="flex items-center gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={`w-4 h-4 ${
+                          s <= selectedRequest.review!.rating
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-stone-200 fill-stone-100'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  {selectedRequest.review.feedback && (
+                    <p className="text-sm text-stone-700 leading-relaxed italic">
+                      "{selectedRequest.review.feedback}"
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Recent Reviews for the assigned technician */}
+              {selectedRequest.technician && (reviewsByTech[selectedRequest.technician.id] || []).length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-3">
+                    Recent Reviews for {selectedRequest.technician.name}
+                  </p>
+                  <div className="space-y-3">
+                    {(reviewsByTech[selectedRequest.technician.id] || []).slice(0, 5).map((rev) => (
+                      <div key={rev.id} className="rounded-lg border border-stone-100 p-3">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-medium text-stone-600">{rev.farmer_name}</span>
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star
+                                key={s}
+                                className={`w-3 h-3 ${
+                                  s <= rev.rating
+                                    ? 'text-amber-400 fill-amber-400'
+                                    : 'text-stone-200 fill-stone-100'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {rev.feedback && (
+                          <p className="text-xs text-stone-600 leading-relaxed flex items-start gap-1.5">
+                            <MessageSquare className="w-3 h-3 text-stone-400 shrink-0 mt-0.5" />
+                            {rev.feedback}
+                          </p>
+                        )}
+                        <p className="text-[10px] text-stone-400 mt-1.5">
+                          {new Date(rev.created_at).toLocaleDateString(undefined, {
+                            month: 'short', day: 'numeric', year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Progress indicator */}
               <div>
