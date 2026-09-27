@@ -5,6 +5,7 @@ import SpareParts from './SpareParts';
 import {
   Loader2, ArrowLeft, Wrench, Star, CheckCircle2, User, Clock,
   ChevronRight, X, Lightbulb, Activity, MessageSquare, Package, CircleDollarSign,
+  BadgeCheck,
 } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -252,8 +253,17 @@ export default function TechnicianDashboard({ onBack }: Props) {
                     {t.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-medium text-stone-900 text-sm truncate">{t.name}</p>
-                    <p className="text-xs text-stone-500 truncate">{t.specialization}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-stone-900 text-sm truncate">{t.name}</p>
+                      {t.rating >= 4.5 && (
+                        <BadgeCheck className="w-4 h-4 text-green-600 shrink-0" />
+                      )}
+                    </div>
+                    {t.rating >= 4.5 ? (
+                      <p className="text-xs text-green-600 font-medium truncate">Certified Technician</p>
+                    ) : (
+                      <p className="text-xs text-stone-500 truncate">{t.specialization}</p>
+                    )}
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
@@ -490,11 +500,22 @@ export default function TechnicianDashboard({ onBack }: Props) {
                 </div>
                 <div>
                   <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">Technician</p>
-                  <p className="text-sm text-stone-700">
-                    {selectedRequest.technician
-                      ? `${selectedRequest.technician.name} (${selectedRequest.technician.specialization})`
-                      : 'Not yet assigned'}
-                  </p>
+                  {selectedRequest.technician ? (
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm text-stone-700">{selectedRequest.technician.name}</p>
+                        {selectedRequest.technician.rating >= 4.5 && (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                            <BadgeCheck className="w-3.5 h-3.5" />
+                            Certified
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-stone-500 mt-0.5">{selectedRequest.technician.specialization}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-stone-700">Not yet assigned</p>
+                  )}
                 </div>
               </div>
 

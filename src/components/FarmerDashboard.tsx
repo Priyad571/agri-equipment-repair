@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Urgency } from '@/types';
-import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign, BadgeCheck } from 'lucide-react';
 import NewRequestForm from './NewRequestForm';
 import RatingPopup from './RatingPopup';
 import SpareParts from './SpareParts';
@@ -290,6 +290,9 @@ export default function FarmerDashboard({ onBack }: Props) {
                     <span className="flex items-center gap-1.5 text-stone-500">
                       <Wrench className="w-4 h-4 text-stone-400" />
                       {req.technician.name}
+                      {req.technician.rating >= 4.5 && (
+                        <BadgeCheck className="w-4 h-4 text-green-600" />
+                      )}
                       <span className="text-amber-500">★ {req.technician.rating}</span>
                     </span>
                   ) : (
