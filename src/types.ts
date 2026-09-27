@@ -34,6 +34,7 @@ export interface RepairRequest {
   likely_issue: string | null;
   cost_estimate: string | null;
   doorstep_repair: boolean;
+  equipment_nickname: string | null;
 }
 
 export interface RepairRequestWithTech extends RepairRequest {

@@ -33,6 +33,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
   const [urgency, setUrgency] = useState<Urgency>('normal');
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [doorstepRepair, setDoorstepRepair] = useState(false);
+  const [equipmentNickname, setEquipmentNickname] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -75,6 +76,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
       likely_issue: likelyIssue,
       cost_estimate: costEstimate,
       doorstep_repair: doorstepRepair,
+      equipment_nickname: equipmentNickname.trim() || null,
     });
 
     setSubmitting(false);
@@ -137,6 +139,21 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
+          </div>
+
+          {/* Equipment Nickname */}
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">
+              Equipment ID / Nickname <span className="text-stone-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={equipmentNickname}
+              onChange={(e) => setEquipmentNickname(e.target.value)}
+              placeholder="e.g. My red tractor, Pump #1"
+              className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+            />
+            <p className="mt-1.5 text-xs text-stone-400">Name this machine to track its repair history across multiple requests.</p>
           </div>
 
           {/* Common Symptoms */}

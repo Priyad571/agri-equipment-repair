@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Urgency } from '@/types';
-import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign, BadgeCheck, Home } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign, BadgeCheck, Home, Tag, ChevronDown, ChevronRight } from 'lucide-react';
 import NewRequestForm from './NewRequestForm';
 import RatingPopup from './RatingPopup';
 import SpareParts from './SpareParts';
@@ -48,6 +48,16 @@ export default function FarmerDashboard({ onBack }: Props) {
   const [ratingRequest, setRatingRequest] = useState<RepairRequestWithTech | null>(null);
   const [autoPrompted, setAutoPrompted] = useState(false);
   const [showParts, setShowParts] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+  function toggleGroup(key: string) {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   const loadRequests = useCallback(async () => {
     if (!farmerName) return;
