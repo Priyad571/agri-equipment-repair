@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Urgency } from '@/types';
-import { SYMPTOMS_BY_EQUIPMENT, getLikelyIssue } from '@/lib/symptoms';
-import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square } from 'lucide-react';
+import { SYMPTOMS_BY_EQUIPMENT, getLikelyIssue, getCostEstimate } from '@/lib/symptoms';
+import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square, CircleDollarSign } from 'lucide-react';
 
 const EQUIPMENT_TYPES = [
   'Tractor',
@@ -43,6 +43,11 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
     [equipmentType, selectedSymptoms]
   );
 
+  const costEstimate = useMemo(
+    () => getCostEstimate(equipmentType, selectedSymptoms),
+    [equipmentType, selectedSymptoms]
+  );
+
   function handleEquipmentChange(value: string) {
     setEquipmentType(value);
     setSelectedSymptoms([]);
@@ -67,6 +72,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
       status: 'requested',
       symptoms: selectedSymptoms.length > 0 ? selectedSymptoms : null,
       likely_issue: likelyIssue,
+      cost_estimate: costEstimate,
     });
 
     setSubmitting(false);
@@ -162,9 +168,9 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
             </div>
           </div>
 
-          {/* Likely Issue suggestion */}
+          {/* Likely Issue + Cost Estimate */}
           {likelyIssue && (
-            <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 animate-fade-in">
+            <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 animate-fade-in space-y-3">
               <div className="flex items-start gap-2.5">
                 <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                 <div>
@@ -174,6 +180,17 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
                   <p className="text-sm text-blue-900 leading-relaxed">{likelyIssue}</p>
                 </div>
               </div>
+              {costEstimate && (
+                <div className="flex items-start gap-2.5 pt-2 border-t border-blue-100">
+                  <CircleDollarSign className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
+                      Cost Estimate
+                    </p>
+                    <p className="text-sm text-blue-900 leading-relaxed">{costEstimate}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

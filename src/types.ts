@@ -32,6 +32,7 @@ export interface RepairRequest {
   created_at: string;
   symptoms: string[] | null;
   likely_issue: string | null;
+  cost_estimate: string | null;
 }
 
 export interface RepairRequestWithTech extends RepairRequest {

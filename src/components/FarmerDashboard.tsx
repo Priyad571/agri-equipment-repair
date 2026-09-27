@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Urgency } from '@/types';
-import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign } from 'lucide-react';
 import NewRequestForm from './NewRequestForm';
 import RatingPopup from './RatingPopup';
 import SpareParts from './SpareParts';
@@ -267,9 +267,17 @@ export default function FarmerDashboard({ onBack }: Props) {
                 )}
 
                 {req.likely_issue && (
-                  <div className="mt-3 flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5">
-                    <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-blue-900 leading-relaxed">{req.likely_issue}</p>
+                  <div className="mt-3 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                      <p className="text-xs text-blue-900 leading-relaxed">{req.likely_issue}</p>
+                    </div>
+                    {req.cost_estimate && (
+                      <div className="flex items-start gap-2 pt-2 border-t border-blue-100">
+                        <CircleDollarSign className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-blue-900 leading-relaxed">{req.cost_estimate}</p>
+                      </div>
+                    )}
                   </div>
                 )}
 

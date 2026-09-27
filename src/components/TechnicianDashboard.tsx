@@ -4,7 +4,7 @@ import type { RepairRequestWithTech, Technician, Status, Review } from '@/types'
 import SpareParts from './SpareParts';
 import {
   Loader2, ArrowLeft, Wrench, Star, CheckCircle2, User, Clock,
-  ChevronRight, X, Lightbulb, Activity, MessageSquare, Package,
+  ChevronRight, X, Lightbulb, Activity, MessageSquare, Package, CircleDollarSign,
 } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -457,6 +457,12 @@ export default function TechnicianDashboard({ onBack }: Props) {
                     <div className="flex-1">
                       <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Likely Issue</p>
                       <p className="text-sm text-blue-900 leading-relaxed">{selectedRequest.likely_issue}</p>
+                      {selectedRequest.cost_estimate && (
+                        <div className="mt-2 pt-2 border-t border-blue-100 flex items-start gap-2">
+                          <CircleDollarSign className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                          <p className="text-xs text-blue-800 leading-relaxed">{selectedRequest.cost_estimate}</p>
+                        </div>
+                      )}
                       <button
                         onClick={() => { setPartsEquipmentFilter(selectedRequest.equipment_type); setShowParts(true); }}
                         className="mt-2 flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"

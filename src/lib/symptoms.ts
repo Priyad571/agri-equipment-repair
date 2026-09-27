@@ -143,3 +143,42 @@ export function getLikelyIssue(equipmentType: string, symptoms: string[]): strin
 
   return `Likely Issue: General inspection recommended based on reported symptoms (${symptoms.join(', ')}). Estimated diagnosis time: 15–30 mins.`;
 }
+
+const BASE_COST_BY_EQUIPMENT: Record<string, { low: number; high: number }> = {
+  Tractor: { low: 500, high: 1000 },
+  Harvester: { low: 700, high: 1200 },
+  Sprayer: { low: 300, high: 600 },
+  Pump: { low: 300, high: 600 },
+  Tiller: { low: 200, high: 450 },
+  Planter: { low: 250, high: 500 },
+  Weeder: { low: 200, high: 400 },
+  Other: { low: 250, high: 500 },
+};
+
+const COMPLEX_SYMPOMS = new Set([
+  "Won't start",
+  'Motor not starting',
+  'Smoke from exhaust',
+  'Overheating',
+  'Unusual noise',
+  'Pump not working',
+  'Vibration / shaking',
+  'Cutting bar jammed',
+  'Conveyor not moving',
+]);
+
+export function getCostEstimate(equipmentType: string, symptoms: string[]): string | null {
+  if (!symptoms.length || symptoms.length === 0) return null;
+
+  const base = BASE_COST_BY_EQUIPMENT[equipmentType] || BASE_COST_BY_EQUIPMENT['Other'];
+  let low = base.low;
+  let high = base.high;
+
+  const complexCount = symptoms.filter((s) => COMPLEX_SYMPOMS.has(s)).length;
+  const symptomBonus = Math.max(0, symptoms.length - 1);
+
+  low += complexCount * 100 + symptomBonus * 50;
+  high += complexCount * 200 + symptomBonus * 100;
+
+  return `Estimated diagnostic + labor cost: \u20B9${low}-\u20B9${high} (excluding spare parts).`;
+}
