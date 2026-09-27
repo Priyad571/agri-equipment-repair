@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Urgency } from '@/types';
 import { SYMPTOMS_BY_EQUIPMENT, getLikelyIssue, getCostEstimate } from '@/lib/symptoms';
-import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square, CircleDollarSign } from 'lucide-react';
+import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square, CircleDollarSign, Home } from 'lucide-react';
 
 const EQUIPMENT_TYPES = [
   'Tractor',
@@ -32,6 +32,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
   const [problemDescription, setProblemDescription] = useState('');
   const [urgency, setUrgency] = useState<Urgency>('normal');
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+  const [doorstepRepair, setDoorstepRepair] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -73,6 +74,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
       symptoms: selectedSymptoms.length > 0 ? selectedSymptoms : null,
       likely_issue: likelyIssue,
       cost_estimate: costEstimate,
+      doorstep_repair: doorstepRepair,
     });
 
     setSubmitting(false);
@@ -220,6 +222,28 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
               ))}
             </select>
           </div>
+
+          {/* Doorstep repair toggle */}
+          <button
+            type="button"
+            onClick={() => setDoorstepRepair((prev) => !prev)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-sm text-left transition-all w-full ${
+              doorstepRepair
+                ? 'border-green-500 bg-green-50 text-green-800'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50'
+            }`}
+          >
+            {doorstepRepair ? (
+              <CheckSquare className="w-5 h-5 text-green-600 shrink-0" />
+            ) : (
+              <Square className="w-5 h-5 text-stone-300 shrink-0" />
+            )}
+            <div className="flex-1">
+              <span className="font-medium">Doorstep repair needed</span>
+              <p className="text-xs text-stone-400 mt-0.5">Check this if the equipment cannot be transported to the workshop</p>
+            </div>
+            <Home className={`w-5 h-5 shrink-0 ${doorstepRepair ? 'text-green-600' : 'text-stone-300'}`} />
+          </button>
 
           {error && (
             <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">

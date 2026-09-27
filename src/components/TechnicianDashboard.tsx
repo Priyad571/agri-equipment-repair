@@ -5,7 +5,7 @@ import SpareParts from './SpareParts';
 import {
   Loader2, ArrowLeft, Wrench, Star, CheckCircle2, User, Clock,
   ChevronRight, X, Lightbulb, Activity, MessageSquare, Package, CircleDollarSign,
-  BadgeCheck,
+  BadgeCheck, Home,
 } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -335,6 +335,12 @@ export default function TechnicianDashboard({ onBack }: Props) {
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_STYLES[req.status]}`}>
                         {STATUS_LABELS[req.status]}
                       </span>
+                      {req.doorstep_repair && (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-teal-100 text-teal-700">
+                          <Home className="w-3 h-3" />
+                          Doorstep Visit
+                        </span>
+                      )}
                     </div>
                     <h3 className="font-semibold text-stone-900 text-base">{req.equipment_type}</h3>
                     <p className="mt-1 text-sm text-stone-600 line-clamp-2">{req.problem_description}</p>
@@ -437,6 +443,12 @@ export default function TechnicianDashboard({ onBack }: Props) {
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_STYLES[selectedRequest.status]}`}>
                   {STATUS_LABELS[selectedRequest.status]}
                 </span>
+                {selectedRequest.doorstep_repair && (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-teal-100 text-teal-700">
+                    <Home className="w-3 h-3" />
+                    Doorstep Visit
+                  </span>
+                )}
               </div>
 
               <div>

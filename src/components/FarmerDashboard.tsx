@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Urgency } from '@/types';
-import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign, BadgeCheck } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign, BadgeCheck, Home } from 'lucide-react';
 import NewRequestForm from './NewRequestForm';
 import RatingPopup from './RatingPopup';
 import SpareParts from './SpareParts';
@@ -243,6 +243,12 @@ export default function FarmerDashboard({ onBack }: Props) {
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_STYLES[req.status]}`}>
                       {STATUS_LABELS[req.status]}
                     </span>
+                    {req.doorstep_repair && (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-teal-100 text-teal-700">
+                        <Home className="w-3 h-3" />
+                        Doorstep Visit
+                      </span>
+                    )}
                   </div>
                   <span className="text-xs text-stone-400 flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
