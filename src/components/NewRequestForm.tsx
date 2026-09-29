@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Urgency } from '@/types';
 import { SYMPTOMS_BY_EQUIPMENT, getLikelyIssue, getCostEstimate } from '@/lib/symptoms';
+import { getMatchingSpecialization } from '@/lib/technicianMatching';
 import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square, CircleDollarSign, Home } from 'lucide-react';
 
 const EQUIPMENT_TYPES = [
@@ -34,6 +35,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [doorstepRepair, setDoorstepRepair] = useState(false);
   const [equipmentNickname, setEquipmentNickname] = useState('');
+  const [matchedTechnicianName, setMatchedTechnicianName] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -66,12 +68,40 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
     setError(null);
     setSubmitting(true);
 
+    const matchedSpecialization = getMatchingSpecialization(
+      equipmentType,
+      selectedSymptoms,
+      problemDescription,
+    );
+    let technicianId: string | null = null;
+    let technicianName: string | null = null;
+
+    if (matchedSpecialization) {
+      const { data: technician, error: technicianError } = await supabase
+        .from('technicians')
+        .select('id, name')
+        .eq('specialization', matchedSpecialization)
+        .order('rating', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (technicianError) {
+        setSubmitting(false);
+        setError('We could not find a matching technician. Please try again.');
+        return;
+      }
+
+      technicianId = technician?.id || null;
+      technicianName = technician?.name || null;
+    }
+
     const { error: insertError } = await supabase.from('requests').insert({
       farmer_name: farmerName,
       equipment_type: equipmentType,
       problem_description: problemDescription,
       urgency,
       status: 'requested',
+      technician_id: technicianId,
       symptoms: selectedSymptoms.length > 0 ? selectedSymptoms : null,
       likely_issue: likelyIssue,
       cost_estimate: costEstimate,
@@ -86,6 +116,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
       return;
     }
 
+    setMatchedTechnicianName(technicianName);
     setSuccess(true);
     setTimeout(() => {
       onSubmitted();
@@ -102,9 +133,20 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
             <CheckCircle2 className="w-9 h-9" />
           </div>
           <h3 className="text-xl font-semibold text-stone-900">Request Submitted!</h3>
-          <p className="mt-2 text-sm text-stone-500">
-            Your repair request has been received. A technician will review it shortly. You can track its status below.
-          </p>
+          {matchedTechnicianName ? (
+            <div className="mt-3 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
+              <p className="text-sm text-green-800">
+                Your request has been matched to <span className="font-semibold">{matchedTechnicianName}</span>.
+              </p>
+              <p className="mt-1 text-xs text-green-600">
+                They will review your request and begin the repair shortly.
+              </p>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-stone-500">
+              Your repair request has been received. It is now available to all technicians — one will pick it up shortly.
+            </p>
+          )}
         </div>
       </div>
     );

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Technician, Status, Review } from '@/types';
+import { getMatchingSpecialization, requestMatchesTechnician } from '@/lib/technicianMatching';
 import SpareParts from './SpareParts';
 import {
   Loader2, ArrowLeft, Wrench, Star, CheckCircle2, User, Clock,
@@ -163,8 +164,21 @@ export default function TechnicianDashboard({ onBack }: Props) {
     setSelectedRequest(null);
   }
 
+  const activeTechnician = technicians.find((t) => t.id === activeTechId) || null;
+
   const filtered = requests.filter((r) => {
-    if (activeTab === 'pending') return r.status === 'requested';
+    if (activeTab === 'pending') {
+      if (r.status !== 'requested') return false;
+      if (activeTechnician) {
+        const matchedSpec = getMatchingSpecialization(
+          r.equipment_type,
+          r.symptoms || [],
+          r.problem_description,
+        );
+        return requestMatchesTechnician(activeTechnician.specialization, matchedSpec);
+      }
+      return true;
+    }
     if (activeTab === 'active') return ['assigned', 'in_progress'].includes(r.status);
     if (activeTab === 'completed') return r.status === 'completed' || r.status === 'cancelled';
     return true;
@@ -172,7 +186,18 @@ export default function TechnicianDashboard({ onBack }: Props) {
 
   const tabCounts = {
     all: requests.length,
-    pending: requests.filter((r) => r.status === 'requested').length,
+    pending: requests.filter((r) => {
+      if (r.status !== 'requested') return false;
+      if (activeTechnician) {
+        const matchedSpec = getMatchingSpecialization(
+          r.equipment_type,
+          r.symptoms || [],
+          r.problem_description,
+        );
+        return requestMatchesTechnician(activeTechnician.specialization, matchedSpec);
+      }
+      return true;
+    }).length,
     active: requests.filter((r) => ['assigned', 'in_progress'].includes(r.status)).length,
     completed: requests.filter((r) => ['completed', 'cancelled'].includes(r.status)).length,
   };
@@ -314,7 +339,9 @@ export default function TechnicianDashboard({ onBack }: Props) {
             <h3 className="text-base font-medium text-stone-700">No requests here</h3>
             <p className="mt-1 text-sm text-stone-500">
               {activeTab === 'pending'
-                ? 'All caught up — no requested repairs.'
+                ? activeTechnician
+                  ? `No requested repairs matching your specialty (${activeTechnician.specialization}).`
+                  : 'All caught up — no requested repairs.'
                 : 'Requests will appear here when available.'}
             </p>
           </div>
