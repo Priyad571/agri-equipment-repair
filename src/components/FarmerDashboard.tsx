@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Urgency } from '@/types';
-import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign, BadgeCheck, Home, Tag, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Tractor, Wrench, Clock, User, Lightbulb, Activity, Star, CheckCircle2, Package, CircleDollarSign, BadgeCheck, Home, Tag, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
 import NewRequestForm from './NewRequestForm';
 import RatingPopup from './RatingPopup';
 import SpareParts from './SpareParts';
@@ -101,6 +101,22 @@ export default function FarmerDashboard({ onBack }: Props) {
     ['assigned', 'in_progress'].includes(r.status)
   ).length;
   const doneCount = requests.filter((r) => r.status === 'completed').length;
+
+  const maintenanceReminders = (() => {
+    const byNickname = new Map<string, { nickname: string; equipmentType: string; completedCount: number }>();
+    for (const r of requests) {
+      const nickname = r.equipment_nickname?.trim();
+      if (!nickname) continue;
+      const key = nickname.toLowerCase();
+      let entry = byNickname.get(key);
+      if (!entry) {
+        entry = { nickname, equipmentType: r.equipment_type, completedCount: 0 };
+        byNickname.set(key, entry);
+      }
+      if (r.status === 'completed') entry.completedCount++;
+    }
+    return Array.from(byNickname.values()).filter((e) => e.completedCount >= 2);
+  })();
 
   // Name gate — ask farmer for their name before showing dashboard
   if (!nameEntered) {
@@ -219,6 +235,36 @@ export default function FarmerDashboard({ onBack }: Props) {
             <p className="text-xs sm:text-sm text-stone-500 mt-0.5">Completed</p>
           </div>
         </div>
+
+        {/* Preventive maintenance reminders */}
+        {maintenanceReminders.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-3">
+              Preventive Maintenance Reminders
+            </h2>
+            <div className="space-y-3">
+              {maintenanceReminders.map((reminder) => (
+                <div
+                  key={reminder.nickname.toLowerCase()}
+                  className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 animate-slide-up"
+                >
+                  <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-600 shrink-0">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-amber-900 leading-relaxed">
+                      <span className="font-semibold">{reminder.nickname}</span> has needed repairs{' '}
+                      {reminder.completedCount} times — consider a preventive maintenance check-up.
+                    </p>
+                    <p className="mt-0.5 text-xs text-amber-600">
+                      {reminder.equipmentType} · {reminder.completedCount} completed repair{reminder.completedCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Request list */}
         <h2 className="text-lg font-semibold text-stone-900 mb-4">Your Past Requests</h2>
