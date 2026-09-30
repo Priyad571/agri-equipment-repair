@@ -4,6 +4,7 @@ import type { Urgency } from '@/types';
 import { SYMPTOMS_BY_EQUIPMENT, getLikelyIssue, getCostEstimate } from '@/lib/symptoms';
 import { getMatchingSpecialization } from '@/lib/technicianMatching';
 import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square, CircleDollarSign, Home } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const EQUIPMENT_TYPES = [
   'Tractor',
@@ -16,10 +17,10 @@ const EQUIPMENT_TYPES = [
   'Other',
 ];
 
-const URGENCY_OPTIONS: { value: Urgency; label: string }[] = [
-  { value: 'normal', label: 'Normal' },
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'critical', label: 'Critical' },
+const URGENCY_OPTIONS: { value: Urgency; key: string }[] = [
+  { value: 'normal', key: 'urgency.normal' },
+  { value: 'urgent', key: 'urgency.urgent' },
+  { value: 'critical', key: 'urgency.critical' },
 ];
 
 interface Props {
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Props) {
+  const { t } = useLanguage();
   const [equipmentType, setEquipmentType] = useState(EQUIPMENT_TYPES[0]);
   const [problemDescription, setProblemDescription] = useState('');
   const [urgency, setUrgency] = useState<Urgency>('normal');
@@ -87,7 +89,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
 
       if (technicianError) {
         setSubmitting(false);
-        setError('We could not find a matching technician. Please try again.');
+        setError(t('form.error.noTech'));
         return;
       }
 
@@ -112,7 +114,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
     setSubmitting(false);
 
     if (insertError) {
-      setError('Something went wrong. Please try again.');
+      setError(t('form.error'));
       return;
     }
 
@@ -132,19 +134,19 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
             <CheckCircle2 className="w-9 h-9" />
           </div>
-          <h3 className="text-xl font-semibold text-stone-900">Request Submitted!</h3>
+          <h3 className="text-xl font-semibold text-stone-900">{t('form.success')}</h3>
           {matchedTechnicianName ? (
             <div className="mt-3 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
               <p className="text-sm text-green-800">
-                Your request has been matched to <span className="font-semibold">{matchedTechnicianName}</span>.
+                {t('form.success.matched')} <span className="font-semibold">{matchedTechnicianName}</span>.
               </p>
               <p className="mt-1 text-xs text-green-600">
-                They will review your request and begin the repair shortly.
+                {t('form.success.matched.desc')}
               </p>
             </div>
           ) : (
             <p className="mt-2 text-sm text-stone-500">
-              Your repair request has been received. It is now available to all technicians — one will pick it up shortly.
+              {t('form.success.unmatched')}
             </p>
           )}
         </div>
@@ -157,8 +159,8 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
       <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-scale-in">
         <div className="flex items-center justify-between p-6 border-b border-stone-100 sticky top-0 bg-white z-10">
           <div>
-            <h3 className="text-lg font-semibold text-stone-900">New Repair Request</h3>
-            <p className="text-xs text-stone-500 mt-0.5">Submitting as {farmerName}</p>
+            <h3 className="text-lg font-semibold text-stone-900">{t('form.title')}</h3>
+            <p className="text-xs text-stone-500 mt-0.5">{t('form.submittingAs')} {farmerName}</p>
           </div>
           <button
             onClick={onClose}
@@ -171,14 +173,14 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Equipment Type */}
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1.5">Equipment Type</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">{t('form.equipmentType')}</label>
             <select
               value={equipmentType}
               onChange={(e) => handleEquipmentChange(e.target.value)}
               className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white"
             >
-              {EQUIPMENT_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+              {EQUIPMENT_TYPES.map((eq) => (
+                <option key={eq} value={eq}>{t(`eq.${eq}`)}</option>
               ))}
             </select>
           </div>
@@ -186,22 +188,22 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
           {/* Equipment Nickname */}
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1.5">
-              Equipment ID / Nickname <span className="text-stone-400 font-normal">(optional)</span>
+              {t('form.equipmentNickname')} <span className="text-stone-400 font-normal">{t('form.equipmentNickname.optional')}</span>
             </label>
             <input
               type="text"
               value={equipmentNickname}
               onChange={(e) => setEquipmentNickname(e.target.value)}
-              placeholder="e.g. My red tractor, Pump #1"
+              placeholder={t('form.equipmentNickname.placeholder')}
               className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
             />
-            <p className="mt-1.5 text-xs text-stone-400">Name this machine to track its repair history across multiple requests.</p>
+            <p className="mt-1.5 text-xs text-stone-400">{t('form.equipmentNickname.hint')}</p>
           </div>
 
           {/* Common Symptoms */}
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-2">
-              Common Symptoms <span className="text-stone-400 font-normal">(select all that apply)</span>
+              {t('form.symptoms')} <span className="text-stone-400 font-normal">{t('form.symptoms.optional')}</span>
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {availableSymptoms.map((symptom) => {
@@ -236,7 +238,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
                 <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
-                    Likely Issue
+                    {t('form.likelyIssue')}
                   </p>
                   <p className="text-sm text-blue-900 leading-relaxed">{likelyIssue}</p>
                 </div>
@@ -246,7 +248,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
                   <CircleDollarSign className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
-                      Cost Estimate
+                      {t('form.costEstimate')}
                     </p>
                     <p className="text-sm text-blue-900 leading-relaxed">{costEstimate}</p>
                   </div>
@@ -257,11 +259,11 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
 
           {/* Problem Description */}
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1.5">Problem Description</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">{t('form.problemDescription')}</label>
             <textarea
               value={problemDescription}
               onChange={(e) => setProblemDescription(e.target.value)}
-              placeholder="Describe the issue — what's happening, when it started, any error codes..."
+              placeholder={t('form.problemPlaceholder')}
               rows={4}
               className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition resize-none"
               required
@@ -270,14 +272,14 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
 
           {/* Urgency */}
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1.5">Urgency</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">{t('form.urgency')}</label>
             <select
               value={urgency}
               onChange={(e) => setUrgency(e.target.value as Urgency)}
               className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white"
             >
               {URGENCY_OPTIONS.map((u) => (
-                <option key={u.value} value={u.value}>{u.label}</option>
+                <option key={u.value} value={u.value}>{t(u.key)}</option>
               ))}
             </select>
           </div>
@@ -298,8 +300,8 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
               <Square className="w-5 h-5 text-stone-300 shrink-0" />
             )}
             <div className="flex-1">
-              <span className="font-medium">Doorstep repair needed</span>
-              <p className="text-xs text-stone-400 mt-0.5">Check this if the equipment cannot be transported to the workshop</p>
+              <span className="font-medium">{t('form.doorstepRepair')}</span>
+              <p className="text-xs text-stone-400 mt-0.5">{t('form.doorstepRepair.desc')}</p>
             </div>
             <Home className={`w-5 h-5 shrink-0 ${doorstepRepair ? 'text-green-600' : 'text-stone-300'}`} />
           </button>
@@ -316,7 +318,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
               onClick={onClose}
               className="flex-1 rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
             >
-              Cancel
+              {t('form.cancel')}
             </button>
             <button
               type="submit"
@@ -326,12 +328,12 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Submitting...
+                  {t('form.submitting')}
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  Submit Request
+                  {t('form.submit')}
                 </>
               )}
             </button>

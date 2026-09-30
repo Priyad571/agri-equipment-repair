@@ -3,11 +3,9 @@ import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech, Technician, Status, Review } from '@/types';
 import { getMatchingSpecialization, requestMatchesTechnician } from '@/lib/technicianMatching';
 import SpareParts from './SpareParts';
-import {
-  Loader2, ArrowLeft, Wrench, Star, CheckCircle2, User, Clock,
-  ChevronRight, X, Lightbulb, Activity, MessageSquare, Package, CircleDollarSign,
-  BadgeCheck, Home,
-} from 'lucide-react';
+import LanguageSelector from './LanguageSelector';
+import { useLanguage } from '@/lib/LanguageContext';
+import { Loader as Loader2, ArrowLeft, Wrench, Star, CircleCheck as CheckCircle2, User, Clock, ChevronRight, X, Lightbulb, Activity, MessageSquare, Package, CircleDollarSign, BadgeCheck, Chrome as Home } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, string> = {
   requested: 'bg-gray-100 text-gray-700',
@@ -17,25 +15,11 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-700',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  requested: 'Requested',
-  assigned: 'Assigned',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-};
-
 const STATUS_FLOW: Status[] = ['requested', 'assigned', 'in_progress', 'completed'];
 const NEXT_STATUS: Record<string, Status> = {
   requested: 'assigned',
   assigned: 'in_progress',
   in_progress: 'completed',
-};
-
-const URGENCY_LABELS: Record<string, string> = {
-  normal: 'Normal',
-  urgent: 'Urgent',
-  critical: 'Critical',
 };
 
 const URGENCY_STYLES: Record<string, string> = {
@@ -51,6 +35,7 @@ interface Props {
 }
 
 export default function TechnicianDashboard({ onBack }: Props) {
+  const { t } = useLanguage();
   const [requests, setRequests] = useState<RepairRequestWithTech[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [reviewsByTech, setReviewsByTech] = useState<Record<string, Review[]>>({});
@@ -164,7 +149,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
     setSelectedRequest(null);
   }
 
-  const activeTechnician = technicians.find((t) => t.id === activeTechId) || null;
+  const activeTechnician = technicians.find((tech) => tech.id === activeTechId) || null;
 
   const filtered = requests.filter((r) => {
     if (activeTab === 'pending') {
@@ -202,11 +187,11 @@ export default function TechnicianDashboard({ onBack }: Props) {
     completed: requests.filter((r) => ['completed', 'cancelled'].includes(r.status)).length,
   };
 
-  const tabs: { key: FilterTab; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'pending', label: 'Requested' },
-    { key: 'active', label: 'Active' },
-    { key: 'completed', label: 'Done' },
+  const tabs: { key: FilterTab; labelKey: string }[] = [
+    { key: 'all', labelKey: 'tech.tab.all' },
+    { key: 'pending', labelKey: 'tech.tab.requested' },
+    { key: 'active', labelKey: 'tech.tab.active' },
+    { key: 'completed', labelKey: 'tech.tab.done' },
   ];
 
   return (
@@ -220,7 +205,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
               className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back</span>
+              <span className="hidden sm:inline">{t('back')}</span>
             </button>
             <div className="h-6 w-px bg-stone-200 hidden sm:block" />
             <div className="flex items-center gap-2">
@@ -228,29 +213,30 @@ export default function TechnicianDashboard({ onBack }: Props) {
                 <Wrench className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-base font-semibold text-stone-900 leading-tight">Technician Dashboard</h1>
-                <p className="text-xs text-stone-500 leading-tight">Manage repair assignments</p>
+                <h1 className="text-base font-semibold text-stone-900 leading-tight">{t('tech.dashboard')}</h1>
+                <p className="text-xs text-stone-500 leading-tight">{t('tech.subtitle')}</p>
               </div>
             </div>
           </div>
 
           {/* Tech identity selector */}
           <div className="flex items-center gap-2">
+            <LanguageSelector />
             <button
               onClick={() => { setPartsEquipmentFilter(undefined); setShowParts(true); }}
               className="flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
             >
               <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">Spare Parts</span>
+              <span className="hidden sm:inline">{t('farmer.spareParts')}</span>
             </button>
             <select
               value={activeTechId || ''}
               onChange={(e) => setActiveTechId(e.target.value || null)}
               className="rounded-lg border border-stone-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
             >
-              <option value="">Working as…</option>
-              {technicians.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+              <option value="">{t('tech.workingAs')}</option>
+              {technicians.map((tech) => (
+                <option key={tech.id} value={tech.id}>{tech.name}</option>
               ))}
             </select>
           </div>
@@ -259,45 +245,45 @@ export default function TechnicianDashboard({ onBack }: Props) {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Technician cards */}
-        <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-3">Our Team</h2>
+        <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-3">{t('tech.ourTeam')}</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-          {technicians.map((t) => {
-            const techReviews = reviewsByTech[t.id] || [];
+          {technicians.map((tech) => {
+            const techReviews = reviewsByTech[tech.id] || [];
             return (
               <div
-                key={t.id}
+                key={tech.id}
                 className={`bg-white rounded-xl border p-4 transition-all cursor-pointer ${
-                  activeTechId === t.id
+                  activeTechId === tech.id
                     ? 'border-amber-500 ring-2 ring-amber-500/20'
                     : 'border-stone-100 hover:border-stone-200'
                 }`}
-                onClick={() => setActiveTechId(activeTechId === t.id ? null : t.id)}
+                onClick={() => setActiveTechId(activeTechId === tech.id ? null : tech.id)}
               >
                 <div className="flex items-center gap-2.5">
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-50 text-amber-700 text-sm font-semibold">
-                    {t.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                    {tech.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="font-medium text-stone-900 text-sm truncate">{t.name}</p>
-                      {t.rating >= 4.5 && (
+                      <p className="font-medium text-stone-900 text-sm truncate">{tech.name}</p>
+                      {tech.rating >= 4.5 && (
                         <BadgeCheck className="w-4 h-4 text-green-600 shrink-0" />
                       )}
                     </div>
-                    {t.rating >= 4.5 ? (
-                      <p className="text-xs text-green-600 font-medium truncate">Certified Technician</p>
+                    {tech.rating >= 4.5 ? (
+                      <p className="text-xs text-green-600 font-medium truncate">{t('tech.certified')}</p>
                     ) : (
-                      <p className="text-xs text-stone-500 truncate">{t.specialization}</p>
+                      <p className="text-xs text-stone-500 truncate">{tech.specialization}</p>
                     )}
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-1 text-amber-500">
                     <Star className="w-4 h-4 fill-current" />
-                    <span className="text-sm font-medium">{t.rating.toFixed(1)}</span>
+                    <span className="text-sm font-medium">{tech.rating.toFixed(1)}</span>
                   </div>
-                  {t.rating_count > 0 && (
-                    <span className="text-xs text-stone-400">({t.rating_count} review{t.rating_count !== 1 ? 's' : ''})</span>
+                  {tech.rating_count > 0 && (
+                    <span className="text-xs text-stone-400">({tech.rating_count} review{tech.rating_count !== 1 ? 's' : ''})</span>
                   )}
                 </div>
               </div>
@@ -317,7 +303,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                   : 'text-stone-500 hover:text-stone-700'
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
               <span className="ml-1.5 text-xs text-stone-400">{tabCounts[tab.key]}</span>
               {activeTab === tab.key && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-600 rounded-full" />
@@ -336,13 +322,13 @@ export default function TechnicianDashboard({ onBack }: Props) {
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-stone-100 text-stone-400 mb-4">
               <Wrench className="w-7 h-7" />
             </div>
-            <h3 className="text-base font-medium text-stone-700">No requests here</h3>
+            <h3 className="text-base font-medium text-stone-700">{t('tech.noRequests')}</h3>
             <p className="mt-1 text-sm text-stone-500">
               {activeTab === 'pending'
                 ? activeTechnician
-                  ? `No requested repairs matching your specialty (${activeTechnician.specialization}).`
-                  : 'All caught up — no requested repairs.'
-                : 'Requests will appear here when available.'}
+                  ? `${t('tech.noRequests.matched')} (${activeTechnician.specialization}).`
+                  : t('tech.noRequests.allCaughtUp')
+                : t('tech.noRequests.desc')}
             </p>
           </div>
         ) : (
@@ -357,19 +343,19 @@ export default function TechnicianDashboard({ onBack }: Props) {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${URGENCY_STYLES[req.urgency]}`}>
-                        {URGENCY_LABELS[req.urgency] || req.urgency}
+                        {t(`urgency.${req.urgency}`)}
                       </span>
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_STYLES[req.status]}`}>
-                        {STATUS_LABELS[req.status]}
+                        {t(`status.${req.status}`)}
                       </span>
                       {req.doorstep_repair && (
                         <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-teal-100 text-teal-700">
                           <Home className="w-3 h-3" />
-                          Doorstep Visit
+                          {t('farmer.doorstepVisit')}
                         </span>
                       )}
                     </div>
-                    <h3 className="font-semibold text-stone-900 text-base">{req.equipment_type}</h3>
+                    <h3 className="font-semibold text-stone-900 text-base">{t(`eq.${req.equipment_type}`)}</h3>
                     <p className="mt-1 text-sm text-stone-600 line-clamp-2">{req.problem_description}</p>
                     {req.symptoms && req.symptoms.length > 0 && (
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -407,7 +393,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                           onClick={() => setSelectedRequest(req)}
                           className="flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-stone-700 transition-colors"
                         >
-                          Details
+                          {t('tech.details')}
                           <ChevronRight className="w-4 h-4" />
                         </button>
                         {NEXT_STATUS[req.status] && (
@@ -416,9 +402,9 @@ export default function TechnicianDashboard({ onBack }: Props) {
                             disabled={updating}
                             className="flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
                           >
-                            {req.status === 'requested' && 'Assign & Accept'}
-                            {req.status === 'assigned' && 'Start Work'}
-                            {req.status === 'in_progress' && <><CheckCircle2 className="w-4 h-4" /> Complete</>}
+                            {req.status === 'requested' && t('tech.assignAccept')}
+                            {req.status === 'assigned' && t('tech.startWork')}
+                            {req.status === 'in_progress' && <><CheckCircle2 className="w-4 h-4" /> {t('tech.complete')}</>}
                           </button>
                         )}
                       </>
@@ -429,11 +415,11 @@ export default function TechnicianDashboard({ onBack }: Props) {
                         className="flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
                       >
                         <CheckCircle2 className="w-4 h-4" />
-                        View Details
+                        {t('tech.viewDetails')}
                       </button>
                     )}
                     {req.status === 'cancelled' && (
-                      <span className="text-sm text-red-500 font-medium">Cancelled</span>
+                      <span className="text-sm text-red-500 font-medium">{t('tech.cancelled')}</span>
                     )}
                   </div>
                 </div>
@@ -454,7 +440,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-6 border-b border-stone-100">
-              <h3 className="text-lg font-semibold text-stone-900">Request Details</h3>
+              <h3 className="text-lg font-semibold text-stone-900">{t('tech.requestDetails')}</h3>
               <button
                 onClick={() => setSelectedRequest(null)}
                 className="text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg p-1.5 transition-colors"
@@ -465,32 +451,32 @@ export default function TechnicianDashboard({ onBack }: Props) {
             <div className="p-6 space-y-5">
               <div className="flex items-center gap-2">
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${URGENCY_STYLES[selectedRequest.urgency]}`}>
-                  {URGENCY_LABELS[selectedRequest.urgency] || selectedRequest.urgency}
+                  {t(`urgency.${selectedRequest.urgency}`)}
                 </span>
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_STYLES[selectedRequest.status]}`}>
-                  {STATUS_LABELS[selectedRequest.status]}
+                  {t(`status.${selectedRequest.status}`)}
                 </span>
                 {selectedRequest.doorstep_repair && (
                   <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-teal-100 text-teal-700">
                     <Home className="w-3 h-3" />
-                    Doorstep Visit
+                    {t('farmer.doorstepVisit')}
                   </span>
                 )}
               </div>
 
               <div>
-                <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">Equipment</p>
-                <p className="font-semibold text-stone-900">{selectedRequest.equipment_type}</p>
+                <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('tech.equipment')}</p>
+                <p className="font-semibold text-stone-900">{t(`eq.${selectedRequest.equipment_type}`)}</p>
               </div>
 
               <div>
-                <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">Problem</p>
+                <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('tech.problem')}</p>
                 <p className="text-sm text-stone-700 leading-relaxed">{selectedRequest.problem_description}</p>
               </div>
 
               {selectedRequest.symptoms && selectedRequest.symptoms.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">Symptoms Reported</p>
+                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">{t('tech.symptomsReported')}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedRequest.symptoms.map((s) => (
                       <span key={s} className="text-xs bg-stone-100 text-stone-700 px-2.5 py-1 rounded-full">{s}</span>
@@ -504,7 +490,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                   <div className="flex items-start gap-2.5">
                     <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Likely Issue</p>
+                      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">{t('form.likelyIssue')}</p>
                       <p className="text-sm text-blue-900 leading-relaxed">{selectedRequest.likely_issue}</p>
                       {selectedRequest.cost_estimate && (
                         <div className="mt-2 pt-2 border-t border-blue-100 flex items-start gap-2">
@@ -517,7 +503,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                         className="mt-2 flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
                       >
                         <Package className="w-3.5 h-3.5" />
-                        Check spare parts availability for {selectedRequest.equipment_type}
+                        {t('tech.checkParts')} {t(`eq.${selectedRequest.equipment_type}`)}
                       </button>
                     </div>
                   </div>
@@ -526,11 +512,11 @@ export default function TechnicianDashboard({ onBack }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">Farmer</p>
+                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('tech.farmer')}</p>
                   <p className="text-sm text-stone-700">{selectedRequest.farmer_name}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">Submitted</p>
+                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('tech.submitted')}</p>
                   <p className="text-sm text-stone-700">
                     {new Date(selectedRequest.created_at).toLocaleDateString(undefined, {
                       month: 'short', day: 'numeric', year: 'numeric',
@@ -538,7 +524,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">Technician</p>
+                  <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('tech.technician')}</p>
                   {selectedRequest.technician ? (
                     <div>
                       <div className="flex items-center gap-1.5">
@@ -546,14 +532,14 @@ export default function TechnicianDashboard({ onBack }: Props) {
                         {selectedRequest.technician.rating >= 4.5 && (
                           <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
                             <BadgeCheck className="w-3.5 h-3.5" />
-                            Certified
+                            {t('tech.certified')}
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-stone-500 mt-0.5">{selectedRequest.technician.specialization}</p>
                     </div>
                   ) : (
-                    <p className="text-sm text-stone-700">Not yet assigned</p>
+                    <p className="text-sm text-stone-700">{t('tech.notAssigned')}</p>
                   )}
                 </div>
               </div>
@@ -561,7 +547,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
               {/* Farmer's rating & feedback for this request */}
               {selectedRequest.review && (
                 <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
-                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Farmer's Rating</p>
+                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">{t('tech.farmersRating')}</p>
                   <div className="flex items-center gap-1 mb-2">
                     {[1, 2, 3, 4, 5].map((s) => (
                       <Star
@@ -586,7 +572,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
               {selectedRequest.technician && (reviewsByTech[selectedRequest.technician.id] || []).length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-3">
-                    Recent Reviews for {selectedRequest.technician.name}
+                    {t('tech.recentReviews')} {selectedRequest.technician.name}
                   </p>
                   <div className="space-y-3">
                     {(reviewsByTech[selectedRequest.technician.id] || []).slice(0, 5).map((rev) => (
@@ -625,7 +611,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
 
               {/* Progress indicator */}
               <div>
-                <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">Progress</p>
+                <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">{t('tech.progress')}</p>
                 <div className="flex items-center gap-1">
                   {STATUS_FLOW.map((s, idx) => {
                     const currentIdx = STATUS_FLOW.indexOf(selectedRequest.status);
@@ -646,7 +632,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                             {idx + 1}
                           </div>
                           <span className={`text-[10px] mt-1 ${reached ? 'text-stone-700' : 'text-stone-400'}`}>
-                            {STATUS_LABELS[s]}
+                            {t(`status.${s}`)}
                           </span>
                         </div>
                       </div>
@@ -664,7 +650,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                       disabled={updating}
                       className="flex-1 rounded-lg border border-red-200 text-red-600 px-4 py-2.5 text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors"
                     >
-                      Cancel Request
+                      {t('tech.cancelRequest')}
                     </button>
                     {NEXT_STATUS[selectedRequest.status] && (
                       <button
@@ -676,9 +662,9 @@ export default function TechnicianDashboard({ onBack }: Props) {
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <>
-                            {selectedRequest.status === 'requested' && 'Assign & Accept'}
-                            {selectedRequest.status === 'assigned' && 'Start Work'}
-                            {selectedRequest.status === 'in_progress' && 'Mark Complete'}
+                            {selectedRequest.status === 'requested' && t('tech.assignAccept')}
+                            {selectedRequest.status === 'assigned' && t('tech.startWork')}
+                            {selectedRequest.status === 'in_progress' && t('tech.markComplete')}
                           </>
                         )}
                       </button>

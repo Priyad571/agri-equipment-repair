@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RepairRequestWithTech } from '@/types';
-import { Star, Loader2, X, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Star, Loader as Loader2, X, CircleCheck as CheckCircle2, MessageSquare } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface Props {
   request: RepairRequestWithTech;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
+  const { t } = useLanguage();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedback, setFeedback] = useState('');
@@ -17,7 +19,7 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const techName = request.technician?.name || 'your technician';
+  const techName = request.technician?.name || '';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,7 +39,7 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
     setSubmitting(false);
 
     if (insertError) {
-      setError('Something went wrong. Please try again.');
+      setError(t('form.error'));
       return;
     }
 
@@ -54,9 +56,9 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
             <CheckCircle2 className="w-9 h-9" />
           </div>
-          <h3 className="text-xl font-semibold text-stone-900">Thanks for your feedback!</h3>
+          <h3 className="text-xl font-semibold text-stone-900">{t('rating.success')}</h3>
           <p className="mt-2 text-sm text-stone-500">
-            Your rating helps other farmers choose the right technician.
+            {t('rating.success.desc')}
           </p>
         </div>
       </div>
@@ -67,7 +69,7 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-scale-in">
         <div className="flex items-center justify-between p-6 border-b border-stone-100">
-          <h3 className="text-lg font-semibold text-stone-900">Rate This Repair</h3>
+          <h3 className="text-lg font-semibold text-stone-900">{t('rating.title')}</h3>
           <button
             onClick={onClose}
             className="text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg p-1.5 transition-colors"
@@ -78,10 +80,10 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="text-center">
-            <p className="text-sm text-stone-500 mb-1">How was your experience with</p>
+            <p className="text-sm text-stone-500 mb-1">{t('rating.experience')}</p>
             <p className="font-semibold text-stone-900">{techName}</p>
             <p className="text-xs text-stone-400 mt-1">
-              {request.equipment_type} repair
+              {t(`eq.${request.equipment_type}`)} {t('rating.repair')}
             </p>
           </div>
 
@@ -109,11 +111,11 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
 
           {rating > 0 && (
             <p className="text-center text-sm text-stone-500 animate-fade-in">
-              {rating === 1 && 'Poor'}
-              {rating === 2 && 'Fair'}
-              {rating === 3 && 'Good'}
-              {rating === 4 && 'Very Good'}
-              {rating === 5 && 'Excellent'}
+              {rating === 1 && t('rating.poor')}
+              {rating === 2 && t('rating.fair')}
+              {rating === 3 && t('rating.good')}
+              {rating === 4 && t('rating.veryGood')}
+              {rating === 5 && t('rating.excellent')}
             </p>
           )}
 
@@ -122,14 +124,14 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
             <label className="block text-sm font-medium text-stone-700 mb-1.5">
               <span className="flex items-center gap-1.5">
                 <MessageSquare className="w-4 h-4 text-stone-400" />
-                Feedback
-                <span className="text-stone-400 font-normal">(optional)</span>
+                {t('rating.feedback')}
+                <span className="text-stone-400 font-normal">{t('rating.feedback.optional')}</span>
               </span>
             </label>
             <textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Share a few words about the service..."
+              placeholder={t('rating.feedbackPlaceholder')}
               rows={3}
               className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition resize-none"
             />
@@ -147,7 +149,7 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
               onClick={onClose}
               className="flex-1 rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
             >
-              Skip
+              {t('rating.skip')}
             </button>
             <button
               type="submit"
@@ -157,12 +159,12 @@ export default function RatingPopup({ request, onClose, onSubmitted }: Props) {
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Submitting...
+                  {t('rating.submitting')}
                 </>
               ) : (
                 <>
                   <Star className="w-4 h-4" />
-                  Submit Rating
+                  {t('rating.submit')}
                 </>
               )}
             </button>

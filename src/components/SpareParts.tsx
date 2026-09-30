@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { SparePart, Availability } from '@/types';
 import { Loader2, Search, X, Package, CircleDollarSign, Truck } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const EQUIPMENT_TYPES = [
   'Tractor',
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
+  const { t } = useLanguage();
   const [parts, setParts] = useState<SparePart[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -70,8 +72,8 @@ export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-stone-900">Spare Parts Inventory</h3>
-              <p className="text-xs text-stone-500">Search and filter available parts</p>
+              <h3 className="text-lg font-semibold text-stone-900">{t('parts.title')}</h3>
+              <p className="text-xs text-stone-500">{t('parts.subtitle')}</p>
             </div>
           </div>
           <button
@@ -90,7 +92,7 @@ export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by part name or supplier..."
+              placeholder={t('parts.search')}
               className="w-full rounded-lg border border-stone-300 pl-10 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent transition"
             />
           </div>
@@ -105,19 +107,19 @@ export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
-              All
+              {t('parts.all')}
             </button>
-            {EQUIPMENT_TYPES.map((t) => (
+            {EQUIPMENT_TYPES.map((eq) => (
               <button
-                key={t}
-                onClick={() => setEquipmentFilter(t)}
+                key={eq}
+                onClick={() => setEquipmentFilter(eq)}
                 className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                  equipmentFilter === t
+                  equipmentFilter === eq
                     ? 'bg-stone-900 text-white'
                     : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
-                {t}
+                {t(`eq.${eq}`)}
               </button>
             ))}
           </div>
@@ -132,7 +134,7 @@ export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 text-stone-400 mb-3">
                 <Package className="w-6 h-6" />
               </div>
-              <p className="text-sm text-stone-500">No parts found. Try a different search or filter.</p>
+              <p className="text-sm text-stone-500">{t('parts.noParts')}</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -145,7 +147,7 @@ export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-medium text-stone-900 text-sm">{part.part_name}</h4>
                       <span className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">
-                        {part.compatible_equipment}
+                        {t(`eq.${part.compatible_equipment}`)}
                       </span>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-stone-500">
@@ -162,7 +164,7 @@ export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
                   <span
                     className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${AVAILABILITY_STYLES[part.availability]}`}
                   >
-                    {part.availability}
+                    {t(`avail.${part.availability}`)}
                   </span>
                 </div>
               ))}
