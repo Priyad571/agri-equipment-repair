@@ -30,7 +30,7 @@ interface Props {
 }
 
 export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Props) {
-  const { t } = useLanguage();
+  const { t, tf } = useLanguage();
   const [equipmentType, setEquipmentType] = useState(EQUIPMENT_TYPES[0]);
   const [problemDescription, setProblemDescription] = useState('');
   const [urgency, setUrgency] = useState<Urgency>('normal');
@@ -44,15 +44,35 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
 
   const availableSymptoms = SYMPTOMS_BY_EQUIPMENT[equipmentType] || SYMPTOMS_BY_EQUIPMENT['Other'];
 
-  const likelyIssue = useMemo(
+  const likelyIssueResult = useMemo(
     () => getLikelyIssue(equipmentType, selectedSymptoms),
     [equipmentType, selectedSymptoms]
   );
 
-  const costEstimate = useMemo(
+  const costEstimateResult = useMemo(
     () => getCostEstimate(equipmentType, selectedSymptoms),
     [equipmentType, selectedSymptoms]
   );
+
+  const likelyIssueText = useMemo(() => {
+    if (!likelyIssueResult) return null;
+    if (likelyIssueResult.isGeneral) {
+      const symptomNames = likelyIssueResult.symptoms.map((s) => t(`symptom.${s}`)).join(', ');
+      return tf('issue.general', { symptoms: symptomNames });
+    }
+    return tf('issue.prefix', {
+      issue: t(likelyIssueResult.issueKey),
+      time: likelyIssueResult.estTime,
+    });
+  }, [likelyIssueResult, t, tf]);
+
+  const costEstimateText = useMemo(() => {
+    if (!costEstimateResult) return null;
+    return tf('cost.template', {
+      low: `\u20B9${costEstimateResult.low}`,
+      high: `\u20B9${costEstimateResult.high}`,
+    });
+  }, [costEstimateResult, tf]);
 
   function handleEquipmentChange(value: string) {
     setEquipmentType(value);
@@ -105,8 +125,8 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
       status: 'requested',
       technician_id: technicianId,
       symptoms: selectedSymptoms.length > 0 ? selectedSymptoms : null,
-      likely_issue: likelyIssue,
-      cost_estimate: costEstimate,
+      likely_issue: likelyIssueText,
+      cost_estimate: costEstimateText,
       doorstep_repair: doorstepRepair,
       equipment_nickname: equipmentNickname.trim() || null,
     });
@@ -224,7 +244,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
                     ) : (
                       <Square className="w-4 h-4 text-stone-300 shrink-0" />
                     )}
-                    {symptom}
+                    {t(`symptom.${symptom}`)}
                   </button>
                 );
               })}
@@ -232,7 +252,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
           </div>
 
           {/* Likely Issue + Cost Estimate */}
-          {likelyIssue && (
+          {likelyIssueText && (
             <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 animate-fade-in space-y-3">
               <div className="flex items-start gap-2.5">
                 <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
@@ -240,17 +260,17 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
                   <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
                     {t('form.likelyIssue')}
                   </p>
-                  <p className="text-sm text-blue-900 leading-relaxed">{likelyIssue}</p>
+                  <p className="text-sm text-blue-900 leading-relaxed">{likelyIssueText}</p>
                 </div>
               </div>
-              {costEstimate && (
+              {costEstimateText && (
                 <div className="flex items-start gap-2.5 pt-2 border-t border-blue-100">
                   <CircleDollarSign className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
                       {t('form.costEstimate')}
                     </p>
-                    <p className="text-sm text-blue-900 leading-relaxed">{costEstimate}</p>
+                    <p className="text-sm text-blue-900 leading-relaxed">{costEstimateText}</p>
                   </div>
                 </div>
               )}

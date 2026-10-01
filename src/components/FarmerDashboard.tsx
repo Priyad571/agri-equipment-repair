@@ -316,7 +316,7 @@ export default function FarmerDashboard({ onBack }: Props) {
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                     {req.symptoms.map((s) => (
-                      <span key={s} className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">{s}</span>
+                      <span key={s} className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">{t(`symptom.${s}`)}</span>
                     ))}
                   </div>
                 )}

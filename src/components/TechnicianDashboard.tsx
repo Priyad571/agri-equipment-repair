@@ -5,7 +5,8 @@ import { getMatchingSpecialization, requestMatchesTechnician } from '@/lib/techn
 import SpareParts from './SpareParts';
 import LanguageSelector from './LanguageSelector';
 import { useLanguage } from '@/lib/LanguageContext';
-import { Loader as Loader2, ArrowLeft, Wrench, Star, CircleCheck as CheckCircle2, User, Clock, ChevronRight, X, Lightbulb, Activity, MessageSquare, Package, CircleDollarSign, BadgeCheck, Chrome as Home } from 'lucide-react';
+import { Loader as Loader2, ArrowLeft, Wrench, Star, CircleCheck as CheckCircle2, User, Clock, ChevronRight, X, Lightbulb, Activity, MessageSquare, Package, CircleDollarSign, BadgeCheck, Chrome as Home, Volume2, Square } from 'lucide-react';
+import { useSpeech } from '@/lib/useVoice';
 
 const STATUS_STYLES: Record<string, string> = {
   requested: 'bg-gray-100 text-gray-700',
@@ -36,6 +37,36 @@ interface Props {
 
 export default function TechnicianDashboard({ onBack }: Props) {
   const { t } = useLanguage();
+  const { speaking, speak, stopSpeaking } = useSpeech();
+  const [speakingTarget, setSpeakingTarget] = useState<string | null>(null);
+
+  function handleSpeak(text: string, target: string) {
+    if (speaking && speakingTarget === target) {
+      stopSpeaking();
+      setSpeakingTarget(null);
+    } else {
+      speak(text);
+      setSpeakingTarget(target);
+    }
+  }
+
+  function makeSpeakButton(text: string, target: string) {
+    const isThisSpeaking = speaking && speakingTarget === target;
+    return (
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); handleSpeak(text, target); }}
+        className={`inline-flex items-center justify-center w-6 h-6 rounded-md transition-colors shrink-0 ${
+          isThisSpeaking
+            ? 'text-amber-600 bg-amber-50'
+            : 'text-stone-400 hover:text-amber-600 hover:bg-amber-50'
+        }`}
+        title={isThisSpeaking ? 'Stop' : 'Listen'}
+      >
+        {isThisSpeaking ? <Square className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+      </button>
+    );
+  }
   const [requests, setRequests] = useState<RepairRequestWithTech[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [reviewsByTech, setReviewsByTech] = useState<Record<string, Review[]>>({});
@@ -273,7 +304,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                     {tech.rating >= 4.5 ? (
                       <p className="text-xs text-green-600 font-medium truncate">{t('tech.certified')}</p>
                     ) : (
-                      <p className="text-xs text-stone-500 truncate">{tech.specialization}</p>
+                      <p className="text-xs text-stone-500 truncate">{t(`spec.${tech.specialization}`)}</p>
                     )}
                   </div>
                 </div>
@@ -283,7 +314,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                     <span className="text-sm font-medium">{tech.rating.toFixed(1)}</span>
                   </div>
                   {tech.rating_count > 0 && (
-                    <span className="text-xs text-stone-400">({tech.rating_count} review{tech.rating_count !== 1 ? 's' : ''})</span>
+                    <span className="text-xs text-stone-400">({tech.rating_count} {tech.rating_count !== 1 ? t('tech.reviews') : t('tech.review')})</span>
                   )}
                 </div>
               </div>
@@ -326,7 +357,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
             <p className="mt-1 text-sm text-stone-500">
               {activeTab === 'pending'
                 ? activeTechnician
-                  ? `${t('tech.noRequests.matched')} (${activeTechnician.specialization}).`
+                  ? `${t('tech.noRequests.matched')} (${t(`spec.${activeTechnician.specialization}`)}).`
                   : t('tech.noRequests.allCaughtUp')
                 : t('tech.noRequests.desc')}
             </p>
@@ -361,7 +392,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         <Activity className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                         {req.symptoms.map((s) => (
-                          <span key={s} className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">{s}</span>
+                          <span key={s} className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">{t(`symptom.${s}`)}</span>
                         ))}
                       </div>
                     )}
@@ -466,12 +497,18 @@ export default function TechnicianDashboard({ onBack }: Props) {
 
               <div>
                 <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('tech.equipment')}</p>
-                <p className="font-semibold text-stone-900">{t(`eq.${selectedRequest.equipment_type}`)}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-stone-900">{t(`eq.${selectedRequest.equipment_type}`)}</p>
+                  {makeSpeakButton(t(`eq.${selectedRequest.equipment_type}`), 'detail-equipment')}
+                </div>
               </div>
 
               <div>
                 <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('tech.problem')}</p>
-                <p className="text-sm text-stone-700 leading-relaxed">{selectedRequest.problem_description}</p>
+                <div className="flex items-start gap-2">
+                  <p className="text-sm text-stone-700 leading-relaxed flex-1">{selectedRequest.problem_description}</p>
+                  {makeSpeakButton(selectedRequest.problem_description, 'detail-problem')}
+                </div>
               </div>
 
               {selectedRequest.symptoms && selectedRequest.symptoms.length > 0 && (
@@ -479,7 +516,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                   <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">{t('tech.symptomsReported')}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedRequest.symptoms.map((s) => (
-                      <span key={s} className="text-xs bg-stone-100 text-stone-700 px-2.5 py-1 rounded-full">{s}</span>
+                      <span key={s} className="text-xs bg-stone-100 text-stone-700 px-2.5 py-1 rounded-full">{t(`symptom.${s}`)}</span>
                     ))}
                   </div>
                 </div>
@@ -491,7 +528,10 @@ export default function TechnicianDashboard({ onBack }: Props) {
                     <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">{t('form.likelyIssue')}</p>
-                      <p className="text-sm text-blue-900 leading-relaxed">{selectedRequest.likely_issue}</p>
+                      <div className="flex items-start gap-2">
+                        <p className="text-sm text-blue-900 leading-relaxed flex-1">{selectedRequest.likely_issue}</p>
+                        {makeSpeakButton(selectedRequest.likely_issue, 'detail-issue')}
+                      </div>
                       {selectedRequest.cost_estimate && (
                         <div className="mt-2 pt-2 border-t border-blue-100 flex items-start gap-2">
                           <CircleDollarSign className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
@@ -536,7 +576,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-stone-500 mt-0.5">{selectedRequest.technician.specialization}</p>
+                      <p className="text-xs text-stone-500 mt-0.5">{t(`spec.${selectedRequest.technician.specialization}`)}</p>
                     </div>
                   ) : (
                     <p className="text-sm text-stone-700">{t('tech.notAssigned')}</p>
