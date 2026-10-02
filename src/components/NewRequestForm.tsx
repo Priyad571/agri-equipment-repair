@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Urgency } from '@/types';
 import { SYMPTOMS_BY_EQUIPMENT, getLikelyIssue, getCostEstimate } from '@/lib/symptoms';
 import { getMatchingSpecialization } from '@/lib/technicianMatching';
-import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square, CircleDollarSign, Home } from 'lucide-react';
+import { Loader2, Send, CheckCircle2, X, Lightbulb, CheckSquare, Square, CircleDollarSign, Home, Mic, Volume2, Square as StopIcon } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useSpeech, useSpeechRecognition } from '@/lib/useVoice';
 
 const EQUIPMENT_TYPES = [
   'Tractor',
@@ -31,6 +32,16 @@ interface Props {
 
 export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Props) {
   const { t, tf } = useLanguage();
+  const { speaking, speak, stopSpeaking } = useSpeech();
+  const [speakingIssue, setSpeakingIssue] = useState(false);
+
+  useEffect(() => {
+    if (!speaking) setSpeakingIssue(false);
+  }, [speaking]);
+
+  const speechRecognition = useSpeechRecognition((text: string) => {
+    setProblemDescription((prev) => (prev.trim() ? `${prev} ${text}` : text));
+  });
   const [equipmentType, setEquipmentType] = useState(EQUIPMENT_TYPES[0]);
   const [problemDescription, setProblemDescription] = useState('');
   const [urgency, setUrgency] = useState<Urgency>('normal');
@@ -256,10 +267,32 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
             <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 animate-fade-in space-y-3">
               <div className="flex items-start gap-2.5">
                 <Lightbulb className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
-                    {t('form.likelyIssue')}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
+                      {t('form.likelyIssue')}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (speakingIssue) {
+                          stopSpeaking();
+                          setSpeakingIssue(false);
+                        } else {
+                          speak(likelyIssueText);
+                          setSpeakingIssue(true);
+                        }
+                      }}
+                      className={`inline-flex items-center justify-center w-6 h-6 rounded-md transition-colors shrink-0 ${
+                        speakingIssue
+                          ? 'text-blue-600 bg-blue-100'
+                          : 'text-blue-400 hover:text-blue-600 hover:bg-blue-100'
+                      }`}
+                      title={speakingIssue ? 'Stop' : 'Listen'}
+                    >
+                      {speakingIssue ? <StopIcon className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
                   <p className="text-sm text-blue-900 leading-relaxed">{likelyIssueText}</p>
                 </div>
               </div>
@@ -280,14 +313,36 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
           {/* Problem Description */}
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1.5">{t('form.problemDescription')}</label>
-            <textarea
-              value={problemDescription}
-              onChange={(e) => setProblemDescription(e.target.value)}
-              placeholder={t('form.problemPlaceholder')}
-              rows={4}
-              className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition resize-none"
-              required
-            />
+            <div className="relative">
+              <textarea
+                value={problemDescription}
+                onChange={(e) => setProblemDescription(e.target.value)}
+                placeholder={t('form.problemPlaceholder')}
+                rows={4}
+                className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition resize-none pr-11"
+                required
+              />
+              {speechRecognition.hasSupport && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (speechRecognition.isListening) {
+                      speechRecognition.stopListening();
+                    } else {
+                      speechRecognition.startListening();
+                    }
+                  }}
+                  className={`absolute top-2.5 right-2.5 inline-flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
+                    speechRecognition.isListening
+                      ? 'text-red-600 bg-red-50 animate-pulse'
+                      : 'text-stone-400 hover:text-green-600 hover:bg-green-50'
+                  }`}
+                  title={speechRecognition.isListening ? 'Stop listening' : 'Speak'}
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Urgency */}
