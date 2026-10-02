@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { SparePart, Availability } from '@/types';
-import { Loader2, Search, X, Package, CircleDollarSign, Truck } from 'lucide-react';
+import { Loader2, Search, X, Package, Truck } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
 
 const EQUIPMENT_TYPES = [
@@ -155,8 +155,7 @@ export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
                         <Truck className="w-3.5 h-3.5 text-stone-400" />
                         {part.supplier_name}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <CircleDollarSign className="w-3.5 h-3.5 text-stone-400" />
+                      <span className="text-stone-600 font-medium">
                         ₹{part.price.toFixed(0)}
                       </span>
                     </div>
