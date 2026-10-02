@@ -157,7 +157,7 @@ export default function SpareParts({ onClose, initialEquipmentFilter }: Props) {
                       </span>
                       <span className="flex items-center gap-1">
                         <CircleDollarSign className="w-3.5 h-3.5 text-stone-400" />
-                        ${part.price.toFixed(2)}
+                        ₹{part.price.toFixed(0)}
                       </span>
                     </div>
                   </div>

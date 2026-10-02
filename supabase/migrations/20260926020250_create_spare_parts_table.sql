@@ -6,7 +6,7 @@
   - id (uuid, primary key)
   - part_name (text, not null)
   - compatible_equipment (text, not null) — e.g. "Tractor", "Pump", "Sprayer"
-  - price (numeric, not null) — cost in currency units
+  - price (numeric, not null) — cost in Indian Rupees (INR)
   - availability (text, not null) — one of: 'In Stock', 'Low Stock', 'Out of Stock'
   - supplier_name (text, not null)
   - created_at (timestamptz, default now())
@@ -33,16 +33,16 @@ CREATE POLICY "anon_select_spare_parts" ON spare_parts FOR SELECT
 
 -- Seed 12 sample parts covering different equipment types
 INSERT INTO spare_parts (part_name, compatible_equipment, price, availability, supplier_name) VALUES
-  ('Fuel filter', 'Tractor', 24.50, 'In Stock', 'AgriParts Co.'),
-  ('Radiator hose', 'Tractor', 38.00, 'Low Stock', 'FarmEquip Supply'),
-  ('Hydraulic seal kit', 'Tractor', 56.75, 'In Stock', 'AgriParts Co.'),
-  ('Spray nozzle (set of 4)', 'Sprayer', 18.00, 'In Stock', 'SprayTech Ltd.'),
-  ('Pressure regulator valve', 'Sprayer', 42.00, 'Out of Stock', 'SprayTech Ltd.'),
-  ('Pump diaphragm', 'Sprayer', 31.50, 'Low Stock', 'AgriParts Co.'),
-  ('Pump seal kit', 'Pump', 27.00, 'In Stock', 'WaterWorks Inc.'),
-  ('Motor capacitor', 'Pump', 19.50, 'In Stock', 'WaterWorks Inc.'),
-  ('Tiller drive belt', 'Tiller', 22.00, 'In Stock', 'FarmEquip Supply'),
-  ('Harvester cutting blade', 'Harvester', 65.00, 'Low Stock', 'AgriParts Co.'),
-  ('Planter seed meter', 'Planter', 48.00, 'In Stock', 'FarmEquip Supply'),
-  ('Weeder tine set', 'Weeder', 34.00, 'Out of Stock', 'FarmEquip Supply')
+  ('Fuel filter', 'Tractor', 650.00, 'In Stock', 'AgriParts Co.'),
+  ('Radiator hose', 'Tractor', 950.00, 'Low Stock', 'FarmEquip Supply'),
+  ('Hydraulic seal kit', 'Tractor', 1400.00, 'In Stock', 'AgriParts Co.'),
+  ('Spray nozzle (set of 4)', 'Sprayer', 480.00, 'In Stock', 'SprayTech Ltd.'),
+  ('Pressure regulator valve', 'Sprayer', 1100.00, 'Out of Stock', 'SprayTech Ltd.'),
+  ('Pump diaphragm', 'Sprayer', 820.00, 'Low Stock', 'AgriParts Co.'),
+  ('Pump seal kit', 'Pump', 720.00, 'In Stock', 'WaterWorks Inc.'),
+  ('Motor capacitor', 'Pump', 520.00, 'In Stock', 'WaterWorks Inc.'),
+  ('Tiller drive belt', 'Tiller', 580.00, 'In Stock', 'FarmEquip Supply'),
+  ('Harvester cutting blade', 'Harvester', 1600.00, 'Low Stock', 'AgriParts Co.'),
+  ('Planter seed meter', 'Planter', 1250.00, 'In Stock', 'FarmEquip Supply'),
+  ('Weeder tine set', 'Weeder', 890.00, 'Out of Stock', 'FarmEquip Supply')
 ON CONFLICT DO NOTHING;
