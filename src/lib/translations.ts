@@ -25,6 +25,10 @@ const en: Dict = {
   'howitworks.step3.desc': 'Follow progress and rate the service when the repair is done.',
   'continue': 'Continue',
   'back': 'Back',
+  'common.stop': 'Stop',
+  'common.listen': 'Listen',
+  'common.speak': 'Speak',
+  'common.stopListening': 'Stop listening',
 
   'farmer.portal': 'Farmer Portal',
   'farmer.portal.subtitle': 'Tell us who you are to get started',
@@ -267,6 +271,10 @@ const hi: Dict = {
   'howitworks.step3.desc': 'प्रगति पर नजर रखें और मरम्मत पूरी होने पर सेवा की रेटिंग दें।',
   'continue': 'जारी रखें',
   'back': 'वापस',
+  'common.stop': 'रोकें',
+  'common.listen': 'सुनें',
+  'common.speak': 'बोलें',
+  'common.stopListening': 'सुनना बंद करें',
 
   'farmer.portal': 'किसान पोर्टल',
   'farmer.portal.subtitle': 'शुरू करने के लिए बताएं कि आप कौन हैं',
@@ -501,6 +509,10 @@ const ka: Dict = {
   'howitworks.step3.desc': 'ಪ್ರಗತಿ ನೋಡಿ ಮತ್ತು ದುರಸ್ತಿ ಮುಗಿದಾಗ ಸೇವೆಯ ರೇಟಿಂಗ್ ನೀಡಿ.',
   'continue': 'ಮುಂದುವರಿಸಿ',
   'back': 'ಹಿಂದೆ',
+  'common.stop': 'ನಿಲ್ಲಿಸಿ',
+  'common.listen': 'ಕೇಳಿ',
+  'common.speak': 'ಮಾತನಾಡಿ',
+  'common.stopListening': 'ಕೇಳುವುದು ನಿಲ್ಲಿಸಿ',
 
   'farmer.portal': 'ರೈತ ಪೋರ್ಟಲ್',
   'farmer.portal.subtitle': 'ಪ್ರಾರಂಭಿಸಲು ನೀವು ಯಾರೆಂದು ಹೇಳಿ',

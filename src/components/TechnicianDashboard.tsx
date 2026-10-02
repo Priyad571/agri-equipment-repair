@@ -36,7 +36,7 @@ interface Props {
 }
 
 export default function TechnicianDashboard({ onBack }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { speaking, speak, stopSpeaking } = useSpeech();
   const [speakingTarget, setSpeakingTarget] = useState<string | null>(null);
 
@@ -61,7 +61,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
             ? 'text-amber-600 bg-amber-50'
             : 'text-stone-400 hover:text-amber-600 hover:bg-amber-50'
         }`}
-        title={isThisSpeaking ? 'Stop' : 'Listen'}
+        title={isThisSpeaking ? t('common.stop') : t('common.listen')}
       >
         {isThisSpeaking ? <Square className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
       </button>
@@ -403,7 +403,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-stone-400" />
-                        {new Date(req.created_at).toLocaleDateString(undefined, {
+                        {new Date(req.created_at).toLocaleDateString(lang === 'hi' ? 'hi-IN' : lang === 'ka' ? 'kn-IN' : undefined, {
                           month: 'short', day: 'numeric',
                         })}
                       </span>
@@ -558,7 +558,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                 <div>
                   <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">{t('tech.submitted')}</p>
                   <p className="text-sm text-stone-700">
-                    {new Date(selectedRequest.created_at).toLocaleDateString(undefined, {
+                    {new Date(selectedRequest.created_at).toLocaleDateString(lang === 'hi' ? 'hi-IN' : lang === 'ka' ? 'kn-IN' : undefined, {
                       month: 'short', day: 'numeric', year: 'numeric',
                     })}
                   </p>
@@ -639,7 +639,7 @@ export default function TechnicianDashboard({ onBack }: Props) {
                           </p>
                         )}
                         <p className="text-[10px] text-stone-400 mt-1.5">
-                          {new Date(rev.created_at).toLocaleDateString(undefined, {
+                          {new Date(rev.created_at).toLocaleDateString(lang === 'hi' ? 'hi-IN' : lang === 'ka' ? 'kn-IN' : undefined, {
                             month: 'short', day: 'numeric', year: 'numeric',
                           })}
                         </p>

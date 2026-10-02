@@ -288,7 +288,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
                           ? 'text-blue-600 bg-blue-100'
                           : 'text-blue-400 hover:text-blue-600 hover:bg-blue-100'
                       }`}
-                      title={speakingIssue ? 'Stop' : 'Listen'}
+                      title={speakingIssue ? t('common.stop') : t('common.listen')}
                     >
                       {speakingIssue ? <StopIcon className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                     </button>
@@ -337,7 +337,7 @@ export default function NewRequestForm({ farmerName, onClose, onSubmitted }: Pro
                       ? 'text-red-600 bg-red-50 animate-pulse'
                       : 'text-stone-400 hover:text-green-600 hover:bg-green-50'
                   }`}
-                  title={speechRecognition.isListening ? 'Stop listening' : 'Speak'}
+                  title={speechRecognition.isListening ? t('common.stopListening') : t('common.speak')}
                 >
                   <Mic className="w-4 h-4" />
                 </button>

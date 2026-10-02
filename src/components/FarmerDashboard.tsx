@@ -27,7 +27,7 @@ interface Props {
 }
 
 export default function FarmerDashboard({ onBack }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [requests, setRequests] = useState<RepairRequestWithTech[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -301,7 +301,7 @@ export default function FarmerDashboard({ onBack }: Props) {
                   </div>
                   <span className="text-xs text-stone-400 flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    {new Date(req.created_at).toLocaleDateString(undefined, {
+                    {new Date(req.created_at).toLocaleDateString(lang === 'hi' ? 'hi-IN' : lang === 'ka' ? 'kn-IN' : undefined, {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric',
